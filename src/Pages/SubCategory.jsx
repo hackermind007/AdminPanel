@@ -1,169 +1,78 @@
 import React, { useEffect, useState } from "react";
 import ThemeDash from "../Compnents/ThemeDash";
-import Button from "@mui/material/Button";
-import Dialog from "@mui/material/Dialog";
-import DialogActions from "@mui/material/DialogActions";
-import DialogContent from "@mui/material/DialogContent";
-import DialogTitle from "@mui/material/DialogTitle";
-import { Box, Switch, TableCell, MenuItem, Select, InputLabel, FormControl, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Switch,
+  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Paper,
+  Typography,
+  Grid,
+  useMediaQuery,
+} from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import TextField from "../Compnents/TextField";
+import DeleteRoundedIcon from "@mui/icons-material/DeleteRounded";
+import BorderColorRoundedIcon from "@mui/icons-material/BorderColorRounded";
 import { useFormik } from "formik";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
-import TableComponent from "../Compnents/TableComponent";
-import DeleteRoundedIcon from '@mui/icons-material/DeleteRounded';
-import BorderColorRoundedIcon from '@mui/icons-material/BorderColorRounded';
 import { HashLoader } from "react-spinners";
-
 
 const SubCategory = () => {
   const token = localStorage.getItem("token");
   const [subcategory, setSubCategory] = useState([]);
   const [filterSubcategory, setfiltersubcategory] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
   const [categories, setCategories] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [eid, setEid] = useState(null);
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(false);  // Loading state
+  const [loading, setLoading] = useState(false);
 
-  const TableHeader = [
-    "Index",
-    "SubCategory Name",
-    "Category Name",
-    "Status",
-    "Delete",
-    "Update",
-  ];
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm")); // Mobile view detection
 
-  const formik = useFormik({
-    initialValues: {
-      subCatagoryname: "",
-      catagoryID: "",
-    },
-    onSubmit: async (values, { resetForm }) => {
-      try {
-        setLoading(true);  // Start loading
-        const url = eid
-          ? `https://interviewhub-3ro7.onrender.com/subcatagory/${eid}`
-          : "https://interviewhub-3ro7.onrender.com/subcatagory/create";
-        const method = eid ? "patch" : "post";
-
-        const res = await axios[method](url, values, {
-          headers: { Authorization: token },
-        });
-
-        toast.success(res.data.message);
-        resetForm();
-        setEid(null);
-        handleClose();
-        dataFetch();
-      } catch (error) {
-        toast.error("An error occurred.");
-        console.error(error);
-      } finally {
-        setLoading(false);  // Stop loading
-      }
-    },
-  });
-
+  // Fetch Subcategories
   const dataFetch = async () => {
-    setLoading(true);  // Start loading
+    setLoading(true);
     try {
       const res = await axios.get(
         "https://interviewhub-3ro7.onrender.com/subcatagory/",
-        {
-          headers: { Authorization: token },
-        }
+        { headers: { Authorization: token } }
       );
       setSubCategory(res.data.data);
       setfiltersubcategory(res.data.data);
     } catch (error) {
       toast.error("Failed to fetch subcategories.");
-      console.error(error);
     } finally {
-      setLoading(false);  // Stop loading
+      setLoading(false);
     }
   };
 
+  // Fetch Categories
   const fetchCategories = async () => {
-    setLoading(true);  // Start loading
     try {
       const res = await axios.get(
         "https://interviewhub-3ro7.onrender.com/catagory/",
-        {
-          headers: { Authorization: token },
-        }
+        { headers: { Authorization: token } }
       );
       setCategories(res.data.data);
     } catch (error) {
       toast.error("Failed to fetch categories.");
-      console.error(error);
-    } finally {
-      setLoading(false);  // Stop loading
     }
-  };
-
-  const handleSearch = (e) => {
-    const term = e.target.value.toLowerCase();
-    setSearchTerm(term);
-
-    const filtered = subcategory.filter((sub) =>
-      sub.subCatagoryname.toLowerCase().includes(term) ||
-      sub.catagoryID?.catagoryName?.toLowerCase().includes(term)
-    );
-    setfiltersubcategory(filtered);
-  };
-
-  const updateData = (id) => {
-    const selectedData = subcategory.find((item) => item._id === id);
-    setEid(id);
-    formik.setValues(selectedData);
-    setOpen(true);
-  };
-
-  const switchToggle = async (id) => {
-    const selectedData = subcategory.find((item) => item._id === id);
-    const updatedStatus = selectedData.status === "on" ? "off" : "on";
-
-    // setLoading(true);  // Start loading
-    try {
-      await axios.patch(
-        `https://interviewhub-3ro7.onrender.com/subcatagory/${id}`,
-        { status: updatedStatus },
-        { headers: { Authorization: token } }
-      );
-      dataFetch();
-    } catch (error) {
-      toast.error("Failed to update status.");
-      console.error(error);
-    } finally {
-      setLoading(false);  // Stop loading
-    }
-  };
-
-  const deleteData = async (id) => {
-    setLoading(true);  // Start loading
-    try {
-      const res = await axios.delete(
-        `https://interviewhub-3ro7.onrender.com/subcatagory/${id}`,
-        {
-          headers: { Authorization: token },
-        }
-      );
-      toast.success(res.data.message);
-      dataFetch();
-    } catch (error) {
-      toast.error("Failed to delete subcategory.");
-      console.error(error);
-    } finally {
-      setLoading(false); 
-    }
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-    setEid(null);
-    formik.resetForm();
   };
 
   useEffect(() => {
@@ -171,110 +80,198 @@ const SubCategory = () => {
     fetchCategories();
   }, []);
 
+  // Formik for Dialog Form
+  const formik = useFormik({
+    initialValues: { subCatagoryname: "", catagoryID: "" },
+    onSubmit: async (values, { resetForm }) => {
+      try {
+        setLoading(true);
+        const url = eid
+          ? `https://interviewhub-3ro7.onrender.com/subcatagory/${eid}`
+          : "https://interviewhub-3ro7.onrender.com/subcatagory/create";
+        const method = eid ? "patch" : "post";
+        await axios[method](url, values, { headers: { Authorization: token } });
+        toast.success(eid ? "Updated Successfully" : "Added Successfully");
+        resetForm();
+        handleClose();
+        dataFetch();
+      } catch (error) {
+        toast.error("An error occurred.");
+      } finally {
+        setLoading(false);
+      }
+    },
+  });
+
+  // Handle Search
+  const handleSearch = (e) => {
+    const term = e.target.value.toLowerCase();
+    setSearchTerm(term);
+    const filtered = subcategory.filter((sub) =>
+      sub.subCatagoryname.toLowerCase().includes(term) ||
+      sub.catagoryID?.catagoryName?.toLowerCase().includes(term)
+    );
+    setfiltersubcategory(filtered);
+  };
+
+  // Handle Edit
+  const updateData = (id) => {
+    const selectedData = subcategory.find((item) => item._id === id);
+    setEid(id);
+    formik.setValues(selectedData);
+    setOpen(true);
+  };
+
+  // Handle Status Toggle
+  const switchToggle = async (id) => {
+    try {
+      const selectedData = subcategory.find((item) => item._id === id);
+      const updatedStatus = selectedData.status === "on" ? "off" : "on";
+      await axios.patch(
+        `https://interviewhub-3ro7.onrender.com/subcatagory/${id}`,
+        { status: updatedStatus },
+        { headers: { Authorization: token } }
+      );
+      dataFetch();
+    } catch {
+      toast.error("Failed to update status.");
+    }
+  };
+
+  // Handle Delete
+  const deleteData = async (id) => {
+    setLoading(true);
+    try {
+      await axios.delete(
+        `https://interviewhub-3ro7.onrender.com/subcatagory/${id}`,
+        { headers: { Authorization: token } }
+      );
+      toast.success("Deleted successfully.");
+      dataFetch();
+    } catch {
+      toast.error("Failed to delete subcategory.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Close Dialog
+  const handleClose = () => {
+    setOpen(false);
+    setEid(null);
+    formik.resetForm();
+  };
+
   return (
     <ThemeDash>
-
-
+      <ToastContainer />
       {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
+        <Box display="flex" justifyContent="center" alignItems="center" height="100vh">
           <HashLoader color="#122dff" />
         </Box>
       ) : (
-        <Box>
-          <Box className="mb-2">
-            <React.Fragment>
-              <Box className="gap-2 d-flex justify-content-between align-items-center">
-                <Box sx={{ width: "85%" }}>
-                  <TextField
-                    label="Search Sub-Category"
-                    value={searchTerm}
-                    onChange={handleSearch}
-                  />
-                </Box>
-                <Box sx={{ width: "15%" }}>
-                  <Button
-                    variant="contained"
-                    onClick={() => {
-                      setOpen(true);
-                    }}
-                    className="w-100 py-3"
-                  >
-                    ADD SUB CATEGORY
-                  </Button>
-                </Box>
-              </Box>
-            </React.Fragment>
-          </Box>
-          <Box sx={{ width: "100%" }}>
-            <TableComponent
-              TableHeader={TableHeader}
-              TableData={filterSubcategory}
-              renderRow={(row, index) => (
-                <>
-                  <TableCell>{index + 1}</TableCell>
-                  <TableCell>{row.subCatagoryname}</TableCell>
-                  <TableCell>{row.catagoryID?.catagoryName}</TableCell>
-                  <TableCell>
-                    <Switch
-                      checked={row.status === "on"}
-                      onClick={() => switchToggle(row._id)}
-                    />
-                  </TableCell>
-                  <TableCell align="left">
-                    <Button onClick={() => deleteData(row._id)}>
-                      <DeleteRoundedIcon className="text-danger" />
-                    </Button>
-                  </TableCell>
-                  <TableCell align="left">
-                    <Button onClick={() => updateData(row._id)}>
-                      <BorderColorRoundedIcon className="text-success" />
-                    </Button>
-                  </TableCell>
-                </>
-              )}
-            />
+        <Box p={2}>
+          {/* Search and Add Button */}
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12} sm={9}>
+              <TextField
+                label="Search Sub-Category"
+                fullWidth
+                value={searchTerm}
+                onChange={handleSearch}
+              />
+            </Grid>
+            <Grid item xs={12} sm={3}>
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={() => setOpen(true)}
+              >
+                ADD SUB CATEGORY
+              </Button>
+            </Grid>
+          </Grid>
+
+          {/* Table */}
+          <Box mt={2}>
+            <Paper sx={{ overflow: "auto" }}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Index</TableCell>
+                    <TableCell>SubCategory Name</TableCell>
+                    <TableCell>Category Name</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Delete</TableCell>
+                    <TableCell>Update</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filterSubcategory.map((row, index) => (
+                    <TableRow key={row._id}>
+                      <TableCell>{index + 1}</TableCell>
+                      <TableCell>{row.subCatagoryname}</TableCell>
+                      <TableCell>{row.catagoryID?.catagoryName}</TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={row.status === "on"}
+                          onChange={() => switchToggle(row._id)}
+                        />
+                      </TableCell>
+                        <TableCell>
+                        <Button onClick={() => deleteData(row._id)}>
+                          <DeleteRoundedIcon color="error" />
+                        </Button>
+                        </TableCell>
+                      <TableCell>
+                        <Button onClick={() => updateData(row._id)}>
+                          <BorderColorRoundedIcon color="success" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Paper>
           </Box>
         </Box>
       )}
 
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>
-          {eid ? "Update SubCategory" : "Add SubCategory"}
-        </DialogTitle>
+      {/* Dialog */}
+      <Dialog open={open} onClose={handleClose} fullWidth>
+        <DialogTitle>{eid ? "Update SubCategory" : "Add SubCategory"}</DialogTitle>
         <form onSubmit={formik.handleSubmit}>
           <DialogContent>
             <TextField
               label="SubCategory Name"
               name="subCatagoryname"
+              fullWidth
               onChange={formik.handleChange}
               value={formik.values.subCatagoryname}
-              fullWidth
+              sx={{ mb: 2 }}
             />
-            <FormControl fullWidth sx={{ mt: 2 }}>
+            <FormControl fullWidth>
               <InputLabel>Category</InputLabel>
               <Select
                 name="catagoryID"
                 value={formik.values.catagoryID}
                 onChange={formik.handleChange}
               >
-              
                 {categories.map((category) => (
-                  category?.status === 'on'?<MenuItem key={category._id} value={category._id}>
+                  <MenuItem key={category._id} value={category._id}>
                     {category.catagoryName}
-                  </MenuItem> : ''
+                  </MenuItem>
                 ))}
               </Select>
             </FormControl>
           </DialogContent>
           <DialogActions>
-            <Button variant="contained" type="submit">
+            <Button type="submit" variant="contained">
               {eid ? "Update" : "Add"}
             </Button>
           </DialogActions>
         </form>
       </Dialog>
-
-      <ToastContainer />
     </ThemeDash>
   );
 };
